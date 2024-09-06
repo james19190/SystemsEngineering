@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 int main(void){
-    char c;
+    int c;
     int letterCount = 0;
     int digitCount = 0;
     int otherCount = 0;
