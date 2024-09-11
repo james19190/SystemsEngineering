@@ -2,42 +2,56 @@
 #include <assert.h>
 #include <stdlib.h>
 
-/* This is skeleton code for reading characters from 
-standard input (e.g., a file or console input) one by one until 
-the end of the file (EOF) is reached. It keeps track of the current 
-line number and is designed to be extended with additional 
-functionality, such as processing or transforming the input data. 
-In this specific task, the goal is to implement logic that removes 
-C-style comments from the input. */
+typedef enum {
+  DEFAULT,
+  COMMENT_START,
+  SLC,
+  MLC,
+  SLC_END,
+  MLC_END,
+  IN_STRING,
+  IN_CHAR
+} State;
 
-int main(void)
-{
-  // ich: int type variable to store character input from getchar() (abbreviation of int character)
+int main(void){
+
+  // dummy variables
   int ich;
-  // line_cur & line_com: current line number and comment line number (abbreviation of current line and comment line)
-  int line_cur, line_com;
-  // ch: character that comes from casting (char) on ich (abbreviation of character)
   char ch;
+ 
+  // meta data
+  int line_cur = 1;
+  int line_com = -1;
+  State currentState = DEFAULT; // Start in the DEFAULT state
 
-  line_cur = 1;
-  line_com = -1;
+  ich = getchar();
+  
+  while (ich != EOF){
 
-  // This while loop reads all characters from standard input one by one
-  while (1) {
-    int got_eof = 0;
+    ch = (char) ich;
+
+    switch(currentState){
+      case DEFAULT:
+        break;
+      case COMMENT_START:
+        break;
+      case SLC:
+        break;
+      case MLC:
+        break;
+      case SLC_END:
+        break;
+      case MLC_END:
+        break;
+      case IN_STRING:
+        break;
+      case IN_CHAR:
+        break;
+    }
 
     ich = getchar();
-    if (ich == EOF) 
-      break;
-
-    ch = (char)ich;
-    // TODO: Implement the decommenting logic
-
-    if (ch == '\n')
-      line_cur++;
-    if (got_eof)
-      break;
   }
-  
+
   return(EXIT_SUCCESS);
+
 }
