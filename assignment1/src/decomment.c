@@ -1,115 +1,140 @@
 #include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
 
 typedef enum {
-  DEFAULT,
-  COMMENT_START,
-  SLC,
-  MLC,
-  MLC_END,
-  IN_STRING,
-  IN_CHAR
+    DEFAULT,
+    COMMENT_START,
+    SLC,
+    MLC,
+    MLC_END,
+    IN_STRING,
+    IN_CHAR
 } State;
 
-int main(void){
+// Function prototypes
+void handle_default(char ch, State *state, FILE *output);
+void handle_comment_start(char ch, State *state, FILE *output);
+void handle_slc(char ch, State *state, FILE *output);
+void handle_mlc(char ch, State *state, FILE *output);
+void handle_mlc_end(char ch, State *state, FILE *output);
+void handle_in_string(char ch, State *state, FILE *output);
+void handle_in_char(char ch, State *state, FILE *output);
 
-  int ich;
-  char ch;
+int main(void) {
+    int ich;
+    char ch;
+    State currentState = DEFAULT;
+    FILE *output = stdout;
 
-  State currentState = DEFAULT; // Start in the DEFAULT state
+    while ((ich = getchar()) != EOF) {
+        ch = (char) ich;
 
-  ich = getchar();
-  
-  while (ich != EOF){
-
-    ch = (char) ich;
-
-    switch(currentState){
-
-      case DEFAULT:
-        if (ch == '/'){
-          currentState = COMMENT_START;
+        switch(currentState) {
+            case DEFAULT:
+                handle_default(ch, &currentState, output);
+                break;
+            case COMMENT_START:
+                handle_comment_start(ch, &currentState, output);
+                break;
+            case SLC:
+                handle_slc(ch, &currentState, output);
+                break;
+            case MLC:
+                handle_mlc(ch, &currentState, output);
+                break;
+            case MLC_END:
+                handle_mlc_end(ch, &currentState, output);
+                break;
+            case IN_STRING:
+                handle_in_string(ch, &currentState, output);
+                break;
+            case IN_CHAR:
+                handle_in_char(ch, &currentState, output);
+                break;
         }
-        else if (ch == '"'){
-          currentState = IN_STRING;
-        }
-        else if (ch == '\''){
-          currentState = IN_CHAR;
-        }
-        else{
-          printf("%c", ch); 
-        }
-        break;
-
-      case COMMENT_START:
-        if (ch == '/'){
-          currentState = SLC;
-        }
-        else if (ch == '*'){
-          currentState = MLC;
-        }
-        else{
-          printf("%c", '/'); // Restore '/' if not part of a comment
-          printf("%c", ch);
-          currentState = DEFAULT;
-        }
-        break;
-
-      case SLC: 
-        // Ignore characters until a newline is found
-        if (ch == '\n'){
-          printf(" "); // Print space to show comment has been removed
-          printf("\n"); // Preserve line numbering by printing a blank line
-          currentState = DEFAULT;
-        }
-        break;
-
-      case MLC:
-        // Preserve line numbers within multi-line comments
-        if (ch == '\n') {
-          printf("\n"); // Print a newline for each newline within the comment
-        }
-        else if (ch == '*'){
-          currentState = MLC_END;
-        }
-        break;
-
-      case MLC_END:
-        if (ch == '/'){
-          currentState = DEFAULT;
-          printf(" "); // Print space as comment has ended
-        } 
-        else {
-          currentState = MLC;
-        }
-        break;
-
-      case IN_STRING:
-        // Handle string literals, allowing escaped quotes
-        printf("%c", ch);
-        if (ch == '"'){
-          currentState = DEFAULT;
-        }
-        break;
-
-      case IN_CHAR:
-        // Handle character literals, allowing escaped characters
-        printf("%c", ch);
-        if (ch == '\''){
-          currentState = DEFAULT;
-        }
-        break;
     }
 
-    ich = getchar();
-  }
+    if (currentState == SLC || currentState == MLC || currentState == MLC_END) {
+        return EXIT_FAILURE;
+    }
 
-  if (currentState == SLC || currentState == MLC || currentState == MLC_END){
-    return(EXIT_FAILURE);
-  }
+    return EXIT_SUCCESS;
+}
 
+// Handle DEFAULT state
+void handle_default(char ch, State *state, FILE *output) {
+    if (ch == '/') {
+        *state = COMMENT_START;
+    } else if (ch == '"') {
+        *state = IN_STRING;
+        fprintf(output, "\"");
+    } else if (ch == '\'') {
+        *state = IN_CHAR;
+        fprintf(output, "\'");
+    } else {
+        fprintf(output, "%c", ch);
+    }
+}
 
-  return(EXIT_SUCCESS);
+// Handle COMMENT_START state
+void handle_comment_start(char ch, State *state, FILE *output) {
+    if (ch == '/') {
+        *state = SLC;
+    } else if (ch == '*') {
+        *state = MLC;
+    } else {
+        fprintf(output, "/%c", ch); // Restore '/' if not part of a comment
+        *state = DEFAULT;
+    }
+}
 
+// Handle SLC state
+void handle_slc(char ch, State *state, FILE *output) {
+    if (ch == '\n') {
+        fprintf(output, " \n"); // Print space to show comment has been removed and preserve line number
+        *state = DEFAULT;
+    }
+}
+
+// Handle MLC state
+void handle_mlc(char ch, State *state, FILE *output) {
+    if (ch == '\n') {
+        fprintf(output, "\n"); // Print newline for each newline within the comment
+    } else if (ch == '*') {
+        *state = MLC_END;
+    }
+}
+
+// Handle MLC_END state
+void handle_mlc_end(char ch, State *state, FILE *output) {
+    if (ch == '/') {
+        *state = DEFAULT;
+        fprintf(output, " "); // Print space to show comment has been removed
+    } else if (ch == '\n') {
+        fprintf(output, "\n"); // Preserve newline inside multi-line comments
+        *state = MLC;
+    }
+}
+
+// Handle IN_STRING state
+void handle_in_string(char ch, State *state, FILE *output) {
+    if (ch == '"') {
+        *state = DEFAULT;
+        fprintf(output, "\"");
+    } else if (ch == '\n') {
+        fprintf(output, "\n");
+    } else {
+        fprintf(output, "%c", ch);
+    }
+}
+
+// Handle IN_CHAR state
+void handle_in_char(char ch, State *state, FILE *output) {
+    fprintf(output, "%c", ch);
+    if (ch == '\'') {
+        *state = DEFAULT;
+        fprintf(output, "\'");
+    } else if (ch == '\n') {
+        fprintf(output, " ");
+    }
 }
