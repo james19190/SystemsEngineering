@@ -23,11 +23,16 @@ void handle_in_char(char ch, State *state, FILE *output);
 int main(void) {
     int ich;
     char ch;
+    int line = 1;
     State currentState = DEFAULT;
     FILE *output = stdout;
 
     while ((ich = getchar()) != EOF) {
         ch = (char) ich;
+
+        if (ch == '\n') {
+            line++;  // Increment line number when a newline is encountered
+        }
 
         switch(currentState) {
             case DEFAULT:
@@ -55,7 +60,8 @@ int main(void) {
     }
 
     if (currentState == SLC || currentState == MLC || currentState == MLC_END) {
-        return EXIT_FAILURE;
+      fprintf(stderr, "Error: line %d: unterminated comment\n", line);
+      return EXIT_FAILURE;
     }
 
     return EXIT_SUCCESS;
@@ -81,6 +87,7 @@ void handle_comment_start(char ch, State *state, FILE *output) {
     if (ch == '/') {
         *state = SLC;
     } else if (ch == '*') {
+        fprintf(output, " "); // Print space to show comment has been removed
         *state = MLC;
     } else {
         fprintf(output, "/%c", ch); // Restore '/' if not part of a comment
@@ -109,9 +116,12 @@ void handle_mlc(char ch, State *state, FILE *output) {
 void handle_mlc_end(char ch, State *state, FILE *output) {
     if (ch == '/') {
         *state = DEFAULT;
-        fprintf(output, " "); // Print space to show comment has been removed
     } else if (ch == '\n') {
         fprintf(output, "\n"); // Preserve newline inside multi-line comments
+        *state = MLC;
+    } else if (ch == '*') {
+        *state = MLC_END;
+    } else {
         *state = MLC;
     }
 }
@@ -133,7 +143,6 @@ void handle_in_char(char ch, State *state, FILE *output) {
     fprintf(output, "%c", ch);
     if (ch == '\'') {
         *state = DEFAULT;
-        fprintf(output, "\'");
     } else if (ch == '\n') {
         fprintf(output, " ");
     }
