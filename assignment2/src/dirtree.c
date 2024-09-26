@@ -3,8 +3,8 @@
 //
 /// @file
 /// @brief resursively traverse directory tree and list all entries
-/// @author <yourname>
-/// @studid <studentid>
+/// @author James Kyoung Ho Kim
+/// @studid 2017-13897
 //--------------------------------------------------------------------------------------------------
 
 #define _GNU_SOURCE
