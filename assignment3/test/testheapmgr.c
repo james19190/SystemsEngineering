@@ -25,7 +25,7 @@ enum {FALSE, TRUE};
    them in the bss section. */
 
 /* The maximum allowable number of calls of heapmgr_malloc(). */
-enum {MAX_CALLS = 1000000};
+enum {MAX_CALLS = 100000};
 
 /* Memory chunks allocated by heapmgr_malloc(). */
 static char *apc_chunks[MAX_CALLS];
@@ -224,8 +224,8 @@ static void set_cpu_limit(void)
 
 {
    struct rlimit s_rlimit;
-   s_rlimit.rlim_cur = 300;
-   s_rlimit.rlim_max = 300;
+   s_rlimit.rlim_cur = 30;
+   s_rlimit.rlim_max = 30;
    setrlimit(RLIMIT_CPU, &s_rlimit);
 }
 
