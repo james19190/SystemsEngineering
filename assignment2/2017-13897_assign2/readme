@@ -1,0 +1,21 @@
+# Decomment Project
+
+Name: James Kyoung Ho Kim
+
+Student ID: [2017-13897]
+
+Assignment: Assignment #2 - Directory Tree Traversal Program
+
+
+## Overview
+This project implements a C program that recursively traverses a directory tree and lists all entries, providing options for detailed output, tree view formatting, and summary statistics.
+
+## Files
+- dirtree.c: The source code for the directory traversal program.
+- readme.md: This file
+
+## Collaborations
+I worked on this project by myself. However, I used google extensively as it was the first time that I worked with system file level api calls. 
+
+## Possible Bugs
+The program may encounter issues when handling symbolic links that create circular references. While it currently attempts to handle standard directory traversal, there are no safeguards against infinite loops caused by such links.
